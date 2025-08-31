@@ -25,7 +25,14 @@ func GetUserById(c *fiber.Ctx) error {
 	if err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Id must be a number"})
 	}
-	user := services.GetUserByIdService(userId)
+	user, err := services.GetUserByIdService(userId)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"status": fiber.StatusInternalServerError,
+			"error":  err.Error(),
+		})
+	}
+
 	return c.Status(fiber.StatusOK).JSON(fiber.Map{
 		"data": user,
 		"status": fiber.Map{
@@ -48,7 +55,8 @@ func CreateUser(c *fiber.Ctx) error {
 
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"error": err.Error(),
+			"status": fiber.StatusInternalServerError,
+			"error":  err.Error(),
 		})
 	}
 
@@ -57,6 +65,44 @@ func CreateUser(c *fiber.Ctx) error {
 		"status": fiber.Map{
 			"message":     "user created successfully",
 			"status_code": fiber.StatusCreated,
+		},
+	})
+}
+
+func DeleteUserById(c *fiber.Ctx) error {
+
+	deletedUsers, err := services.DeleteUserById(c.Params("id"))
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"status": fiber.StatusInternalServerError,
+			"error":  err.Error(),
+		})
+	}
+
+	return c.Status(200).JSON(fiber.Map{
+		"data": deletedUsers,
+		"status": fiber.Map{
+			"message":     "user deleted successfully",
+			"status_code": 200,
+		},
+	})
+}
+
+func DeleteAllUsers(c *fiber.Ctx) error {
+
+	deletedUsers, err := services.DeleteAllUsers()
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"status": fiber.StatusInternalServerError,
+			"error":  err.Error(),
+		})
+	}
+
+	return c.Status(200).JSON(fiber.Map{
+		"data": deletedUsers,
+		"status": fiber.Map{
+			"message":     "user deleted successfully",
+			"status_code": fiber.StatusAccepted,
 		},
 	})
 }
