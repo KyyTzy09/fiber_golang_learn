@@ -6,6 +6,7 @@ import (
 	"fiber/common/types"
 	"fiber/configs"
 	"strconv"
+
 	"gorm.io/gorm"
 )
 
@@ -49,6 +50,30 @@ func CreateUserService(data types.CreateUser) (*models.User, error) {
 	return user, nil
 }
 
+func UpdateUser(id string, userName string) (*models.User, error) {
+	user := &models.User{}
+
+	userId, err := strconv.Atoi(id)
+	if err != nil {
+		return nil, err
+	}
+
+	if err := configs.Db.First(&user, userId).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, errors.New("user not found")
+		}
+		return nil, err
+	}
+
+	// pake save bukan update  
+	user.UserName = userName
+	if err := configs.Db.Save(user).Error; err != nil {
+		return nil, err
+	}
+
+	return user, nil
+}
+
 func DeleteUserById(id string) (*models.User, error) {
 	user := &models.User{}
 	userId, err := strconv.Atoi(id)
@@ -56,6 +81,7 @@ func DeleteUserById(id string) (*models.User, error) {
 		return nil, err
 	}
 
+	// Tanpa model
 	if err := configs.Db.
 		First(&user, "user_id = ?", userId).
 		Error; err != nil {
@@ -65,6 +91,7 @@ func DeleteUserById(id string) (*models.User, error) {
 		return nil, err
 	}
 
+	// Tanpa model
 	if err := configs.Db.
 		Delete(&user).
 		Error; err != nil {
@@ -87,6 +114,7 @@ func DeleteAllUsers() (*[]models.User, error) {
 		return nil, errors.New("user not found")
 	}
 
+	// Dengan model
 	if err := configs.Db.Session(&gorm.Session{AllowGlobalUpdate: true}).Delete(&models.User{}).Error; err != nil {
 		return nil, err
 	}

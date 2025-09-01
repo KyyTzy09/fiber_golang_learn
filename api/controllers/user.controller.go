@@ -69,6 +69,33 @@ func CreateUser(c *fiber.Ctx) error {
 	})
 }
 
+func UpdateUser(c *fiber.Ctx) error {
+	var body types.UpdateUserRequest
+	var params = c.Params("id")
+
+	if err := c.BodyParser(&body); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": "Cannot parse JSON",
+		})
+	}
+
+	createdUser, err := services.UpdateUser(params, body.UserName)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"status": fiber.StatusInternalServerError,
+			"error":  err.Error(),
+		})
+	}
+
+	return c.Status(201).JSON(fiber.Map{
+		"data": createdUser,
+		"status": fiber.Map{
+			"message":     "user created successfully",
+			"status_code": fiber.StatusCreated,
+		},
+	})
+}
+
 func DeleteUserById(c *fiber.Ctx) error {
 
 	deletedUsers, err := services.DeleteUserById(c.Params("id"))
